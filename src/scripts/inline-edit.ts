@@ -1,4 +1,4 @@
-import { configureMermaid, mermaid } from './mermaid';
+import { renderMermaidIn } from './mermaid';
 
 interface CommitInfo {
 	mode: 'disabled' | 'unavailable' | 'scheduled' | 'committed' | 'failed' | 'clean';
@@ -138,42 +138,6 @@ export function initInlineEditing(): void {
 		}
 	}
 
-	let mermaidRun = 0;
-
-	async function renderMermaidDiagrams(): Promise<void> {
-		const blocks = Array.from(doc.querySelectorAll<HTMLElement>('.sl-mermaid'));
-		if (!blocks.length) return;
-		const run = ++mermaidRun;
-		configureMermaid();
-		let index = 0;
-		for (const block of blocks) {
-			if (run !== mermaidRun) return;
-			const canvas = block.querySelector<HTMLElement>('.sl-mermaid-canvas');
-			const error = block.querySelector<HTMLElement>('.sl-mermaid-error');
-			const source = block.querySelector<HTMLElement>('.sl-mermaid-source')?.textContent ?? '';
-			if (!canvas || !source.trim()) continue;
-			try {
-				const id = `sl-mermaid-${Date.now()}-${index++}`;
-				const result = await mermaid.render(id, source);
-				if (run !== mermaidRun) return;
-				canvas.innerHTML = result.svg;
-				if (error) {
-					error.hidden = true;
-					error.textContent = '';
-				}
-				block.dataset.rendered = 'true';
-			} catch (renderError) {
-				if (run !== mermaidRun) return;
-				canvas.innerHTML = '';
-				block.dataset.rendered = 'false';
-				if (error) {
-					error.hidden = false;
-					error.textContent = `Mermaid error: ${(renderError as Error).message}`;
-				}
-			}
-		}
-	}
-
 	async function setView(view: 'visual' | 'code', persist = true): Promise<void> {
 		const code = view === 'code';
 		docShell.dataset.view = view;
@@ -197,7 +161,7 @@ export function initInlineEditing(): void {
 				codeContent.textContent = source ?? 'Could not load the Markdown source.';
 			}
 		} else {
-			void renderMermaidDiagrams();
+			void renderMermaidIn(doc);
 		}
 	}
 
@@ -220,7 +184,7 @@ export function initInlineEditing(): void {
 	});
 
 	const themeObserver = new MutationObserver(() => {
-		if (docShell.dataset.view !== 'code') void renderMermaidDiagrams();
+		if (docShell.dataset.view !== 'code') void renderMermaidIn(doc);
 	});
 	themeObserver.observe(document.documentElement, {
 		attributes: true,
@@ -385,5 +349,5 @@ export function initInlineEditing(): void {
 			localStorage.getItem('storelight:browse-view') === 'code' ? 'code' : 'visual';
 	} catch {}
 	if (initialView === 'code') void setView('code', false);
-	else void renderMermaidDiagrams();
+	else void renderMermaidIn(doc);
 }

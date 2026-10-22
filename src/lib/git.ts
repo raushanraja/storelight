@@ -52,6 +52,8 @@ export function buildCommitMessage(
 			return `${prefix}: edit ${kind ?? 'block'} in ${relPath}`;
 		case 'frontmatter':
 			return `${prefix}: update frontmatter in ${relPath}`;
+		case 'upload':
+			return `${prefix}: add image ${relPath}`;
 		case 'raw':
 			return `${prefix}: update ${relPath} (raw markdown)`;
 		case 'wysiwyg':

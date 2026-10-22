@@ -1,12 +1,15 @@
 import { Crepe } from '@milkdown/crepe';
 import '@milkdown/crepe/theme/common/style.css';
 import '@milkdown/crepe/theme/frame.css';
+import { editorViewCtx } from '@milkdown/kit/core';
 import { basicSetup } from 'codemirror';
 import { EditorState } from '@codemirror/state';
 import { EditorView, placeholder } from '@codemirror/view';
 import { markdown } from '@codemirror/lang-markdown';
 import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language';
-import { configureMermaid, mermaid } from './mermaid';
+import { configureMermaid, mermaid, renderMermaidIn } from './mermaid';
+
+type EditorMode = 'wysiwyg' | 'raw' | 'split';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -260,6 +263,12 @@ export function initStudio(): void {
 		document.querySelectorAll<HTMLButtonElement>('[data-mode]')
 	);
 	const modeCaption = byId('mode-caption');
+	const editorStage = document.querySelector<HTMLElement>('.editor-stage');
+	const previewPane = byId('preview-pane');
+	const previewContent = byId('preview-content');
+	const previewStatus = byId('preview-status');
+	const cheatsheetButton = byId<HTMLButtonElement>('cheatsheet-button');
+	const cheatsheetDialog = byId<HTMLDialogElement>('cheatsheet-dialog');
 
 	const state = {
 		roots: [] as RootInfo[],
@@ -268,7 +277,7 @@ export function initStudio(): void {
 		rootId: '',
 		path: '',
 		doc: null as DocResponse | null,
-		mode: 'wysiwyg' as 'wysiwyg' | 'raw',
+		mode: 'wysiwyg' as EditorMode,
 		yaml: '',
 		body: '',
 		baseHash: '',
@@ -286,6 +295,8 @@ export function initStudio(): void {
 		richBaseline: '',
 		userInteracted: false,
 		loadToken: 0,
+		previewToken: 0,
+		previewTimer: undefined as ReturnType<typeof setTimeout> | undefined,
 		filter: '',
 		conflict: null as null | { currentSource: string; currentHash: string },
 		saveQueue: Promise.resolve(true) as Promise<boolean>,
@@ -293,6 +304,15 @@ export function initStudio(): void {
 
 	let toastTimer: ReturnType<typeof setTimeout> | undefined;
 	let mermaidPreviewId = 0;
+
+	const SPLIT_MIN_WIDTH = 1100;
+	const splitQuery = window.matchMedia(`(min-width: ${SPLIT_MIN_WIDTH}px)`);
+
+	try {
+		const stored = localStorage.getItem('storelight:studio-mode');
+		if (stored === 'raw' || stored === 'wysiwyg') state.mode = stored;
+		else if (stored === 'split' && splitQuery.matches) state.mode = 'split';
+	} catch {}
 
 	function ensureMermaid(): void {
 		configureMermaid();
@@ -323,6 +343,7 @@ export function initStudio(): void {
 	themeToggle.addEventListener('click', () => {
 		applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
 		ensureMermaid();
+		if (state.mode === 'split') void renderMermaidIn(previewContent);
 	});
 
 	function closeSidebar(): void {
@@ -563,10 +584,24 @@ export function initStudio(): void {
 			button.classList.toggle('is-active', active);
 			button.setAttribute('aria-pressed', String(active));
 		}
-		modeCaption.textContent = state.mode === 'wysiwyg' ? 'Visual editor' : 'Raw Markdown';
+		modeCaption.textContent =
+			state.mode === 'wysiwyg'
+				? 'Visual editor'
+				: state.mode === 'raw'
+					? 'Raw Markdown'
+					: 'Visual + preview';
 		frontmatterPanel.hidden = state.mode === 'raw';
-		richEditor.hidden = state.mode !== 'wysiwyg';
+		richEditor.hidden = state.mode === 'raw';
 		rawEditor.hidden = state.mode !== 'raw';
+		const split = state.mode === 'split';
+		previewPane.hidden = !split;
+		editorStage?.classList.toggle('is-split', split);
+	}
+
+	function persistMode(): void {
+		try {
+			localStorage.setItem('storelight:studio-mode', state.mode);
+		} catch {}
 	}
 
 	async function mountRich(body: string, token: number): Promise<void> {
@@ -580,6 +615,12 @@ export function initStudio(): void {
 			root: richEditor,
 			defaultValue: body,
 			featureConfigs: {
+				[Crepe.Feature.ImageBlock]: {
+					onUpload: uploadImage,
+					blockOnUpload: uploadImage,
+					inlineOnUpload: uploadImage,
+					proxyDomURL: proxyAssetUrl,
+				},
 				[Crepe.Feature.CodeMirror]: {
 					renderPreview(language, content, applyPreview) {
 						if (language !== 'mermaid' && language !== 'mmd') return null;
@@ -605,7 +646,7 @@ export function initStudio(): void {
 		state.crepe = crepe;
 		crepe.on((listener) => {
 			listener.markdownUpdated((_ctx, markdownText) => {
-				if (!state.richReady || state.mode !== 'wysiwyg') return;
+				if (!state.richReady || (state.mode !== 'wysiwyg' && state.mode !== 'split')) return;
 				state.body = markdownText;
 				// Crepe can emit normalization events right after mounting (bullet style,
 				// table padding, etc.). Treat those as the new baseline, not as edits.
@@ -689,6 +730,14 @@ export function initStudio(): void {
 
 	async function loadDoc(rootId: string, path: string): Promise<void> {
 		const token = ++state.loadToken;
+		state.previewToken += 1;
+		if (state.previewTimer) {
+			clearTimeout(state.previewTimer);
+			state.previewTimer = undefined;
+		}
+		previewContent.replaceChildren();
+		previewStatus.textContent = 'Ready';
+		previewPane.dataset.state = '';
 		editorPanel.classList.add('is-loading');
 		saveButton.disabled = true;
 		historyButton.disabled = true;
@@ -729,14 +778,21 @@ export function initStudio(): void {
 			renderTree();
 			await destroyEditors();
 			if (token !== state.loadToken) return;
-			if (state.mode === 'wysiwyg') {
-				frontmatterPanel.hidden = false;
-				await mountRich(doc.body, token);
-			} else {
+			if (state.mode === 'raw') {
 				frontmatterPanel.hidden = true;
 				mountRaw(doc.source, token);
+			} else {
+				frontmatterPanel.hidden = false;
+				await mountRich(doc.body, token);
+				if (token === state.loadToken && state.mode === 'split') void refreshPreview();
 			}
 			if (token !== state.loadToken) return;
+			statusPosition.textContent =
+				state.mode === 'raw'
+					? 'Raw Markdown'
+					: state.mode === 'split'
+						? 'Visual + preview'
+						: 'Rich Markdown';
 			setStatus('Saved', 'clean');
 			setCommitStatus(undefined, undefined);
 			statusCommit.textContent = state.git.autoCommit
@@ -787,6 +843,7 @@ export function initStudio(): void {
 		state.pendingAction = action;
 		state.pauseAutosave = false;
 		const content = buildContent();
+		if (state.mode === 'split') schedulePreview();
 		if (content === state.lastSaved) {
 			state.dirty = false;
 			setStatus('Saved', 'clean');
@@ -797,6 +854,43 @@ export function initStudio(): void {
 		setStatus('Unsaved changes', 'dirty');
 		updateStats(content);
 		scheduleAutosave();
+	}
+
+	function schedulePreview(delay = 420): void {
+		if (state.mode !== 'split') return;
+		if (state.previewTimer) clearTimeout(state.previewTimer);
+		state.previewTimer = setTimeout(() => {
+			state.previewTimer = undefined;
+			void refreshPreview();
+		}, delay);
+	}
+
+	async function refreshPreview(): Promise<void> {
+		if (state.mode !== 'split' || !state.doc) return;
+		const token = ++state.previewToken;
+		previewPane.dataset.state = 'loading';
+		previewStatus.textContent = 'Rendering…';
+		try {
+			const content = buildContent();
+			const data = await api<{ html: string }>('/api/preview', {
+				method: 'POST',
+				body: JSON.stringify({ root: state.rootId, path: state.path, content }),
+			});
+			if (token !== state.previewToken || state.mode !== 'split') return;
+			const scrollTop = previewContent.scrollTop;
+			previewContent.innerHTML = data.html;
+			previewContent.scrollTop = scrollTop;
+			previewPane.dataset.state = 'ready';
+			previewStatus.textContent = `Updated ${new Date().toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit',
+			})}`;
+			void renderMermaidIn(previewContent);
+		} catch (error) {
+			if (token !== state.previewToken) return;
+			previewPane.dataset.state = 'error';
+			previewStatus.textContent = (error as Error).message || 'Preview failed';
+		}
 	}
 
 	function scheduleAutosave(): void {
@@ -914,6 +1008,11 @@ export function initStudio(): void {
 			if (state.doc) void requestSave(true);
 			return;
 		}
+		if ((event.metaKey || event.ctrlKey) && event.key === '/') {
+			event.preventDefault();
+			openCheatsheet();
+			return;
+		}
 		const target = event.target as HTMLElement;
 		const typing =
 			target instanceof HTMLInputElement ||
@@ -927,7 +1026,7 @@ export function initStudio(): void {
 	});
 
 	const markInteracted = () => {
-		if (state.mode === 'wysiwyg') state.userInteracted = true;
+		if (state.mode === 'wysiwyg' || state.mode === 'split') state.userInteracted = true;
 	};
 	richEditor.addEventListener('pointerdown', markInteracted, { capture: true });
 	richEditor.addEventListener('keydown', markInteracted, { capture: true });
@@ -941,48 +1040,201 @@ export function initStudio(): void {
 	});
 
 	// -----------------------------------------------------------------------
+	// Image uploads
+	// -----------------------------------------------------------------------
+
+	function normalizePosix(value: string): string {
+		const parts: string[] = [];
+		for (const part of value.split('/')) {
+			if (!part || part === '.') continue;
+			if (part === '..') {
+				parts.pop();
+				continue;
+			}
+			parts.push(part);
+		}
+		return parts.join('/');
+	}
+
+	/** Resolve relative image paths against the document so Crepe can display them. */
+	function proxyAssetUrl(url: string): string {
+		if (!url || /^(?:[a-z][a-z0-9+.-]*:|\/\/|\/|#)/i.test(url)) return url;
+		const docDir = state.path.includes('/') ? state.path.slice(0, state.path.lastIndexOf('/')) : '';
+		const hashIndex = url.search(/[?#]/);
+		const target = hashIndex === -1 ? url : url.slice(0, hashIndex);
+		const suffix = hashIndex === -1 ? '' : url.slice(hashIndex);
+		if (!target) return url;
+		const resolved = normalizePosix(docDir ? `${docDir}/${target}` : target);
+		if (!resolved || resolved.startsWith('..')) return url;
+		return `/api/asset?root=${encodeURIComponent(state.rootId)}&path=${encodeURIComponent(
+			resolved
+		)}${suffix}`;
+	}
+
+	async function uploadImage(
+		file: File,
+		rootId = state.rootId,
+		docPath = state.path
+	): Promise<string> {
+		const form = new FormData();
+		form.append('root', rootId);
+		form.append('path', docPath);
+		form.append('file', file);
+		const response = await fetch('/api/upload', { method: 'POST', body: form });
+		const payload = (await response.json().catch(() => ({}))) as {
+			url?: string;
+			name?: string;
+			error?: string;
+			commit?: CommitOutcome;
+		};
+		if (!response.ok || !payload.url) {
+			const message = payload.error || 'Image upload failed';
+			toast(message, 'error');
+			throw new Error(message);
+		}
+		toast(
+			`Uploaded ${payload.name ?? file.name}${
+				payload.commit ? ` · ${commitLabel(payload.commit)}` : ''
+			}`,
+			'success'
+		);
+		return payload.url;
+	}
+
+	function insertImage(src: string, alt: string): void {
+		const crepe = state.crepe;
+		if (!crepe || !state.richReady) return;
+		crepe.editor.action((ctx) => {
+			const view = ctx.get(editorViewCtx);
+			const { state: editorState } = view;
+			const image = editorState.schema.nodes.image?.create({ src, alt });
+			const paragraph = editorState.schema.nodes.paragraph;
+			if (!image || !paragraph) return;
+			const { $from } = editorState.selection;
+			const block = paragraph.create(null, image);
+			const insertAt = $from.depth > 0 ? $from.after(1) : $from.pos;
+			const tr = editorState.tr.insert(
+				Math.min(insertAt, editorState.doc.content.size),
+				block
+			);
+			view.dispatch(tr);
+			view.focus();
+		});
+	}
+
+	function imageFiles(data: DataTransfer | null): File[] {
+		if (!data) return [];
+		return Array.from(data.files ?? []).filter((file) => file.type.startsWith('image/'));
+	}
+
+	async function insertImages(files: File[]): Promise<void> {
+		const rootId = state.rootId;
+		const docPath = state.path;
+		for (const file of files) {
+			try {
+				const url = await uploadImage(file, rootId, docPath);
+				if (state.rootId !== rootId || state.path !== docPath) return;
+				insertImage(url, file.name.replace(/\.[^.]+$/, ''));
+			} catch {
+				// uploadImage already surfaced the failure in a toast.
+			}
+		}
+	}
+
+	richEditor.addEventListener(
+		'paste',
+		(event) => {
+			if (state.mode === 'raw') return;
+			const files = imageFiles(event.clipboardData);
+			if (!files.length) return;
+			event.preventDefault();
+			event.stopPropagation();
+			void insertImages(files);
+		},
+		{ capture: true }
+	);
+
+	richEditor.addEventListener(
+		'drop',
+		(event) => {
+			if (state.mode === 'raw') return;
+			const files = imageFiles(event.dataTransfer);
+			if (!files.length) return;
+			event.preventDefault();
+			event.stopPropagation();
+			void insertImages(files);
+		},
+		{ capture: true }
+	);
+
+	// -----------------------------------------------------------------------
 	// Mode switching
 	// -----------------------------------------------------------------------
 
-	async function switchMode(mode: 'wysiwyg' | 'raw'): Promise<void> {
+	async function switchMode(mode: EditorMode): Promise<void> {
 		if (mode === state.mode || !state.doc) return;
-		const token = ++state.loadToken;
+		if (mode === 'split' && !splitQuery.matches) {
+			toast('Split preview needs a wider window.', 'info');
+			return;
+		}
+
 		if (mode === 'raw') {
 			const built = buildContent();
 			const content =
 				!state.dirty && state.richBaseline && built === state.richBaseline
 					? state.lastSaved
 					: built;
+			const token = ++state.loadToken;
 			state.mode = 'raw';
 			state.rawReady = false;
 			setModeUi();
+			persistMode();
 			await destroyEditors();
 			if (token !== state.loadToken) return;
 			mountRaw(content, token);
 			statusPosition.textContent = 'Raw Markdown';
-		} else {
+			if (state.dirty) scheduleAutosave();
+			return;
+		}
+
+		// Visual and split both use the rich editor. Coming from raw remounts it;
+		// toggling visual ↔ split only shows or hides the preview column.
+		if (state.mode === 'raw') {
 			const content = state.rawView?.state.doc.toString() ?? buildContent();
 			const split = splitContent(content);
 			state.yaml = split.yaml;
 			state.body = split.body;
 			frontmatterInput.value = split.yaml;
 			frontmatterHint.textContent = frontmatterLabel(split.yaml);
-			state.mode = 'wysiwyg';
+			const token = ++state.loadToken;
+			state.mode = mode;
 			setModeUi();
+			persistMode();
 			await destroyEditors();
 			if (token !== state.loadToken) return;
 			await mountRich(split.body, token);
-			statusPosition.textContent = 'Rich Markdown';
+			statusPosition.textContent = mode === 'split' ? 'Visual + preview' : 'Rich Markdown';
+		} else {
+			state.mode = mode;
+			setModeUi();
+			persistMode();
+			statusPosition.textContent = mode === 'split' ? 'Visual + preview' : 'Rich Markdown';
 		}
+
+		if (mode === 'split') void refreshPreview();
 		if (state.dirty) scheduleAutosave();
 	}
 
 	for (const button of modeButtons) {
 		button.addEventListener('click', () => {
 			const mode = button.dataset.mode;
-			if (mode === 'wysiwyg' || mode === 'raw') void switchMode(mode);
+			if (mode === 'wysiwyg' || mode === 'raw' || mode === 'split') void switchMode(mode);
 		});
 	}
+
+	splitQuery.addEventListener('change', (event) => {
+		if (!event.matches && state.mode === 'split') void switchMode('wysiwyg');
+	});
 
 	// -----------------------------------------------------------------------
 	// Conflict dialog
@@ -1126,6 +1378,19 @@ export function initStudio(): void {
 	historyDialog.querySelector('[data-close-dialog]')?.addEventListener('click', () => {
 		historyDialog.close();
 	});
+
+	// -----------------------------------------------------------------------
+	// Slash command cheatsheet
+	// -----------------------------------------------------------------------
+
+	function openCheatsheet(): void {
+		if (!cheatsheetDialog.open) cheatsheetDialog.showModal();
+	}
+
+	cheatsheetButton.addEventListener('click', openCheatsheet);
+	cheatsheetDialog
+		.querySelector('[data-cheatsheet-close]')
+		?.addEventListener('click', () => cheatsheetDialog.close());
 
 	// -----------------------------------------------------------------------
 	// Boot

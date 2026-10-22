@@ -51,6 +51,7 @@ Root ids must be unique and match `[a-zA-Z0-9][a-zA-Z0-9_-]*`.
 ## Auto-commit details
 
 - Only the edited file is staged and committed. Other changes in the repository are untouched.
+- Uploaded images are committed separately with `add image <path>`, before the document that links them.
 - A commit is skipped when there is no diff.
 - Ignored files and files outside a git repository produce a visible save result without a commit.
 - Git hooks run normally. If a hook rewrites the file, the committed content is the result on disk.
@@ -65,6 +66,8 @@ All endpoints are same-origin JSON endpoints and set `Cache-Control: no-store`. 
 | `/api/tree` | GET | Roots, files, nested tree, editor settings. |
 | `/api/doc?root&path` | GET | Raw source, hash, split frontmatter. |
 | `/api/doc` | PUT | Save content (`baseHash`, `action`, optional `flush`). |
+| `/api/preview` | POST | Render unsaved Markdown, used by the Studio's split preview. |
+| `/api/upload` | POST | Upload an image (`multipart/form-data`) and commit it under `<doc folder>/assets/`. |
 | `/api/toggle-task` | POST | Toggle a task marker at a source offset. |
 | `/api/edit-block` | POST | Replace a source range. |
 | `/api/asset?root&path` | GET | Serve images and other files from a content root. |
@@ -96,7 +99,8 @@ The browse view renders with `remark-parse`, `remark-gfm`, `remark-math`, `rehyp
 | Relative images and `.md` links | rewritten to `/api/asset` and `/browse/...` |
 
 The Studio's visual mode uses Crepe's built-in KaTeX support. Mermaid code blocks have a preview
-toggle in the code block toolbar.
+toggle in the code block toolbar. **Split** mode renders unsaved content through the same pipeline
+in a live preview pane and is available at viewport widths of 1100 px and above.
 
 ## Scripts
 

@@ -70,7 +70,7 @@ export interface DocMeta {
 	bodyOffset: number;
 }
 
-export type EditAction = 'wysiwyg' | 'raw' | 'frontmatter' | 'inline' | 'task';
+export type EditAction = 'wysiwyg' | 'raw' | 'frontmatter' | 'inline' | 'task' | 'upload';
 
 export interface CommitResult {
 	committed: boolean;

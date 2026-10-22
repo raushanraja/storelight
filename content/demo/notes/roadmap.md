@@ -11,9 +11,9 @@ Check something off, then open **History** in the Studio to see the commit that 
 
 - [x] Rich Markdown editing with Milkdown Crepe
 - [x] Raw Markdown mode with CodeMirror
-- [ ] Slash-command cheatsheet inside the editor
-- [ ] Image upload that writes beside the Markdown file
-- [ ] Split-pane preview on wide screens
+- [x] Slash-command cheatsheet inside the editor
+- [x] Image upload that writes beside the Markdown file
+- [x] Split-pane preview on wide screens
 
 ## Inline editing
 

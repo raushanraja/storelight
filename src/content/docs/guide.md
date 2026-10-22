@@ -19,13 +19,20 @@ Every request re-checks the resolved path against the root's file manifest, so `
 
 ## Three ways to edit
 
-**Studio** (`/studio`) is a full-screen editor. A tree of all roots sits on the left, and a **Visual / Code** switch at the top left of each document changes the editing mode:
+**Studio** (`/studio`) is a full-screen editor. A tree of all roots sits on the left, and a **Visual / Code / Split** switch at the top left of each document changes the editing mode:
 
 - **Visual** — Milkdown Crepe, with slash commands, tables, task lists, code blocks, links, and KaTeX math.
 - **Code** — CodeMirror with the whole file, including frontmatter.
+- **Split** — the visual editor beside a live rendered preview. Split is available on wide screens; narrowing the window returns to Visual.
 
 Mermaid fenced blocks stay editable code in the Studio. The code block toolbar has a preview button
-that renders the diagram with the same Mermaid configuration used by the browse view.
+that renders the diagram with the same Mermaid configuration used by the browse view. Split mode
+renders Mermaid, KaTeX math, and Shiki-highlighted code in the preview pane.
+
+Images can be added with `/image` or by pasting/dropping an image into the visual editor. Storelight
+writes the file to an `assets/` folder beside the Markdown document, inserts a relative link, and
+commits the image straight away. Press `Ctrl+/` (or the keyboard icon in the header) for the full
+slash-command and shortcut cheatsheet.
 
 Frontmatter is edited in a separate YAML panel in Visual mode. The editor never throws it away.
 
@@ -68,11 +75,12 @@ docs(storelight): update content/demo/notes/roadmap.md
 docs(storelight): toggle task in content/demo/notes/roadmap.md
 docs(storelight): edit paragraph in content/demo/notes/roadmap.md
 docs(storelight): update content/demo/notes/roadmap.md (raw markdown)
+docs(storelight): add image content/demo/notes/assets/screenshot.png
 ```
 
 The debounce and prefix are configurable. Storelight never pushes, never commits unrelated files, and leaves commits alone when auto-commit is disabled.
 
-Inline block edits and checkbox toggles are discrete actions, so they commit immediately. Studio typing uses the debounce.
+Inline block edits and checkbox toggles are discrete actions, so they commit immediately. Studio typing uses the debounce. Uploaded images are committed immediately with an `add image` message; the document that links them follows on its normal autosave.
 
 ## Conflict handling
 
