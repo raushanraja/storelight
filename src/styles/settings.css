@@ -1,0 +1,368 @@
+body.settings-page {
+	display: block;
+	overflow: auto;
+}
+
+body.settings-page .app-header {
+	position: sticky;
+	top: 0;
+}
+
+.settings-main {
+	width: min(980px, calc(100% - 40px));
+	margin: 0 auto;
+	padding: 38px 0 70px;
+}
+
+.settings-intro {
+	max-width: 720px;
+	margin-bottom: 26px;
+}
+
+.settings-intro h1 {
+	margin: 6px 0 8px;
+	font-size: clamp(26px, 3vw, 36px);
+	font-weight: 640;
+	letter-spacing: -0.035em;
+}
+
+.settings-intro p {
+	margin: 0;
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.65;
+}
+
+#settings-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding-bottom: 56px;
+}
+
+.settings-card {
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	background: color-mix(in srgb, var(--panel) 82%, transparent);
+	box-shadow: var(--shadow-soft);
+	overflow: hidden;
+}
+
+.settings-card-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+	padding: 18px 20px 14px;
+	border-bottom: 1px solid var(--border);
+}
+
+.settings-card-head h2 {
+	margin: 0 0 4px;
+	font-size: 15px;
+	font-weight: 640;
+	letter-spacing: -0.015em;
+}
+
+.settings-card-head p {
+	max-width: 620px;
+	margin: 0;
+	color: var(--faint);
+	font-size: 12px;
+	line-height: 1.55;
+}
+
+.settings-card > .settings-fields {
+	padding: 18px 20px 20px;
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.roots-list {
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.settings-muted {
+	margin: 0;
+	padding: 8px;
+	color: var(--faint);
+	font-size: 12px;
+}
+
+.root-card {
+	border: 1px solid var(--border);
+	border-radius: 10px;
+	background: var(--panel-2);
+	overflow: hidden;
+}
+
+.root-card-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--border);
+	background: color-mix(in srgb, var(--panel) 60%, transparent);
+}
+
+.root-card-index {
+	display: inline-grid;
+	place-items: center;
+	width: 22px;
+	height: 22px;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	color: var(--faint);
+	font-family: var(--font-mono);
+	font-size: 10px;
+}
+
+.root-card-title {
+	font-size: 12px;
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.root-status {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-left: auto;
+	color: var(--faint);
+	font-size: 10px;
+	white-space: nowrap;
+}
+
+.root-status::before {
+	content: '';
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--faint);
+}
+
+.root-status[data-state='ok'] {
+	color: var(--green);
+}
+
+.root-status[data-state='ok']::before {
+	background: var(--green);
+}
+
+.root-status[data-state='missing'] {
+	color: var(--red);
+}
+
+.root-status[data-state='missing']::before {
+	background: var(--red);
+}
+
+.root-remove {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border: 1px solid transparent;
+	border-radius: 6px;
+	background: transparent;
+	color: var(--faint);
+	cursor: pointer;
+}
+
+.root-remove:hover {
+	border-color: color-mix(in srgb, var(--red) 40%, var(--border));
+	color: var(--red);
+	background: var(--red-soft);
+}
+
+.root-card-body {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: 12px;
+	padding: 14px;
+}
+
+.field {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 0;
+}
+
+.field > span {
+	color: var(--muted);
+	font-size: 11px;
+	font-weight: 550;
+}
+
+.field small {
+	color: var(--faint);
+	font-size: 10px;
+	line-height: 1.5;
+}
+
+.field small code,
+.settings-footnote code {
+	padding: 1px 4px;
+	border: 1px solid var(--border);
+	border-radius: 3px;
+	background: var(--panel-2);
+	font-family: var(--font-mono);
+	font-size: 0.95em;
+}
+
+.field input,
+.field textarea {
+	width: 100%;
+	min-width: 0;
+	padding: 8px 10px;
+	border: 1px solid var(--border);
+	border-radius: 7px;
+	background: var(--bg-elevated);
+	color: var(--text);
+	font-family: var(--font-ui);
+	font-size: 12.5px;
+	outline: none;
+	transition:
+		border-color 0.15s,
+		box-shadow 0.15s;
+}
+
+.field textarea {
+	min-height: 72px;
+	resize: vertical;
+	font-family: var(--font-mono);
+	font-size: 11.5px;
+	line-height: 1.55;
+}
+
+.field input:focus,
+.field textarea:focus {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.field-full {
+	grid-column: 1 / -1;
+}
+
+.field-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+}
+
+.switch-field {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	cursor: pointer;
+}
+
+.switch-field input {
+	width: 16px;
+	height: 16px;
+	margin-top: 2px;
+	accent-color: var(--accent);
+}
+
+.switch-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.switch-title {
+	color: var(--text);
+	font-size: 12.5px;
+	font-weight: 550;
+}
+
+.hint {
+	color: var(--faint);
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.settings-savebar {
+	position: sticky;
+	bottom: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 9px;
+	padding: 10px 12px;
+	border: 1px solid var(--border-strong);
+	border-radius: 11px;
+	background: color-mix(in srgb, var(--panel) 92%, transparent);
+	backdrop-filter: blur(14px);
+	box-shadow: var(--shadow);
+}
+
+.settings-status {
+	margin-right: auto;
+	padding-left: 4px;
+	color: var(--faint);
+	font-size: 11px;
+}
+
+.settings-status[data-tone='dirty'] {
+	color: var(--amber);
+}
+
+.settings-status[data-tone='error'] {
+	color: var(--red);
+}
+
+.settings-status[data-tone='success'] {
+	color: var(--green);
+}
+
+.config-path,
+.settings-footnote {
+	color: var(--faint);
+	font-size: 11px;
+	line-height: 1.6;
+}
+
+.config-path code {
+	color: var(--muted);
+	font-family: var(--font-mono);
+	font-size: 10.5px;
+}
+
+.settings-footnote {
+	margin-top: -2px;
+}
+
+@media (max-width: 760px) {
+	.settings-main {
+		width: calc(100% - 24px);
+		padding-top: 24px;
+	}
+
+	.settings-card-head {
+		flex-direction: column;
+	}
+
+	.root-card-body,
+	.field-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.settings-savebar {
+		flex-wrap: wrap;
+	}
+
+	.settings-status {
+		width: 100%;
+		margin-bottom: 4px;
+	}
+}

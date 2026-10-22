@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Storelight">
+  <rect width="64" height="64" rx="14" fill="#0d1117"/>
+  <path d="M18 14h20a8 8 0 0 1 8 8v28H26a8 8 0 0 1-8-8V14Z" fill="#161b22" stroke="#5eead4" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M26 24h13M26 31h10M26 38h13" stroke="#c9d1d9" stroke-width="2.2" stroke-linecap="round"/>
+  <circle cx="46" cy="46" r="7" fill="#f4c27a"/>
+  <path d="M46 39v-3M46 56v-3M53 46h3M36 46h3" stroke="#f4c27a" stroke-width="2" stroke-linecap="round"/>
+</svg>

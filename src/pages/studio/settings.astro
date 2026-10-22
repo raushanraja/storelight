@@ -1,0 +1,164 @@
+---
+export const prerender = false;
+import logo from '../../assets/logo.svg';
+import '../../styles/studio.css';
+import '../../styles/settings.css';
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<title>Settings — Storelight</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<script is:inline>
+			try {
+				document.documentElement.dataset.theme =
+					localStorage.getItem('storelight:theme') === 'light' ? 'light' : 'dark';
+			} catch {}
+		</script>
+	</head>
+	<body class="settings-page">
+		<svg class="icon-sprite" aria-hidden="true">
+			<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></symbol>
+			<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" /></symbol>
+			<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></symbol>
+			<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15M10 11v6M14 11v6" /></symbol>
+			<symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8M7 3v5h8" /></symbol>
+			<symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6" /></symbol>
+			<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></symbol>
+			<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></symbol>
+			<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+			<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></symbol>
+		</svg>
+
+		<header class="app-header">
+			<a class="brand" href="/">
+				<img src={logo.src} width="28" height="28" alt="" />
+				<span class="brand-text">
+					<strong>Storelight</strong>
+					<span>docs studio</span>
+				</span>
+			</a>
+			<div class="crumb">
+				<span class="crumb-muted">Studio</span>
+				<span class="crumb-slash" aria-hidden="true">/</span>
+				<span class="crumb-title">Roots &amp; settings</span>
+			</div>
+			<div class="header-actions">
+				<a class="btn btn-ghost" href="/studio/">
+					<svg class="icon"><use href="#i-arrow-left" /></svg>
+					<span>Back to Studio</span>
+				</a>
+				<button type="button" class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+					<svg class="icon theme-icon-dark"><use href="#i-sun" /></svg>
+					<svg class="icon theme-icon-light"><use href="#i-moon" /></svg>
+				</button>
+			</div>
+		</header>
+
+		<main class="settings-main">
+			<div class="settings-intro">
+				<span class="eyebrow">Configuration</span>
+				<h1>Roots &amp; settings</h1>
+				<p>
+					Storelight reads Markdown from the folders you list here. Edits are written straight
+					back to those files and committed in the repository that contains them.
+				</p>
+			</div>
+
+			<form id="settings-form" novalidate>
+				<section class="settings-card">
+					<div class="settings-card-head">
+						<div>
+							<h2>Content roots</h2>
+							<p>Any folder on this machine can be a root. Use globs to include or exclude files.</p>
+						</div>
+						<button type="button" class="btn" id="add-root">
+							<svg class="icon"><use href="#i-plus" /></svg>
+							Add root
+						</button>
+					</div>
+					<div class="roots-list" id="roots-list">
+						<p class="settings-muted">Loading roots…</p>
+					</div>
+				</section>
+
+				<section class="settings-card">
+					<div class="settings-card-head">
+						<div>
+							<h2>Git</h2>
+							<p>
+								Storelight commits only the file it edited. It never pushes and never stages
+								unrelated changes.
+							</p>
+						</div>
+					</div>
+					<div class="settings-fields">
+						<label class="switch-field">
+							<input type="checkbox" id="git-auto" />
+							<span class="switch-copy">
+								<span class="switch-title">Auto-commit edits</span>
+								<span class="hint">Write a commit after the debounce period. Inline edits commit immediately.</span>
+							</span>
+						</label>
+						<div class="field-grid">
+							<label class="field">
+								<span>Debounce (ms)</span>
+								<input type="number" id="git-debounce" min="250" max="60000" step="250" />
+								<small>Idle time after the last Studio save.</small>
+							</label>
+							<label class="field">
+								<span>Commit prefix</span>
+								<input type="text" id="git-prefix" maxlength="80" spellcheck="false" />
+								<small>Example: <code>docs(storelight): update path.md</code></small>
+							</label>
+						</div>
+					</div>
+				</section>
+
+				<section class="settings-card">
+					<div class="settings-card-head">
+						<div>
+							<h2>Editor</h2>
+							<p>How quickly the Studio writes changes to disk while you type.</p>
+						</div>
+					</div>
+					<div class="field-grid">
+						<label class="field">
+							<span>Autosave idle delay (ms)</span>
+							<input type="number" id="editor-autosave" min="200" max="10000" step="100" />
+							<small>Shorter is safer; longer means fewer writes.</small>
+						</label>
+					</div>
+				</section>
+
+				<div class="settings-savebar">
+					<div class="settings-status" id="settings-status" aria-live="polite"></div>
+					<button type="button" class="btn btn-ghost" id="reset-button">Reset</button>
+					<button type="submit" class="btn btn-primary" id="save-settings">
+						<svg class="icon"><use href="#i-save" /></svg>
+						Save configuration
+					</button>
+				</div>
+			</form>
+
+			<p class="config-path">
+				Config file: <code id="config-path">storelight.config.json</code>
+			</p>
+			<p class="settings-footnote">
+				Root paths may be absolute, relative to the config file, or start with <code>~/</code>.
+				Changes to roots apply immediately after saving.
+			</p>
+		</main>
+
+		<div id="toast" class="studio-toast" role="status" aria-live="polite"></div>
+
+		<script>
+			import { initSettings } from '../../scripts/settings';
+			initSettings();
+		</script>
+	</body>
+</html>

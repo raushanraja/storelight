@@ -1,0 +1,49 @@
+---
+title: Storelight
+description: A local Starlight studio for browsing and editing Markdown — with a WYSIWYG editor, inline editing, and automatic git commits.
+template: splash
+hero:
+  tagline: Your Markdown docs, with the lights on. Browse every file, edit in a rich editor or directly in the rendered page, and let every save become a clean commit.
+  image:
+    file: ../../assets/logo.svg
+    alt: Storelight
+  actions:
+    - text: Open the Studio
+      link: /studio/
+      icon: right-arrow
+    - text: Browse the demo docs
+      link: /browse/demo/welcome.md
+      icon: open-book
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkButton } from '@astrojs/starlight/components';
+
+## What it does
+
+<CardGrid stagger>
+	<Card title="Point it at any folder" icon="setting">
+		Add one or more directories in **Settings**. Include and exclude globs decide which `.md`
+		files appear. Paths are guarded server-side.
+	</Card>
+	<Card title="A real WYSIWYG editor" icon="pencil">
+		The Studio uses Milkdown Crepe for rich editing and CodeMirror for raw Markdown. Frontmatter
+		is preserved and editable separately.
+	</Card>
+	<Card title="Edit the rendered page" icon="rocket">
+		In the browse view, click a paragraph, heading, table, or code block to edit its Markdown.
+		Task checkboxes toggle and save instantly.
+	</Card>
+	<Card title="Autosave + auto-commit" icon="approve-check">
+		Changes are written to disk as you type. After a short pause, Storelight commits just that
+		file to its own git repository with an action-specific message.
+	</Card>
+</CardGrid>
+
+## Try it
+
+Use the bundled **Demo docs** root to play with checkboxes, inline edits, and revision history. When you're ready, add your own folder from [Settings](/studio/settings).
+
+<LinkButton href="/studio/settings" icon="setting" variant="minimal">
+	Configure content roots
+</LinkButton>

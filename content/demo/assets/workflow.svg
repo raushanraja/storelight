@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" role="img" aria-labelledby="title desc">
+  <title id="title">Storelight flow</title>
+  <desc id="desc">Markdown files flow through roots and source-mapped rendering into the browse view and Studio, then back to files and git commits.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#161b22"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10z" fill="#5eead4"/>
+    </marker>
+  </defs>
+  <rect width="760" height="220" rx="18" fill="url(#bg)" stroke="#30363d"/>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13">
+    <g fill="#0f172a" stroke="#5eead4" stroke-width="1.5">
+      <rect x="36" y="76" width="150" height="68" rx="10"/>
+      <rect x="305" y="76" width="150" height="68" rx="10"/>
+      <rect x="574" y="76" width="150" height="68" rx="10"/>
+    </g>
+    <g fill="#e6edf3" text-anchor="middle">
+      <text x="111" y="105">Markdown files</text>
+      <text x="111" y="125" fill="#8b949e" font-size="11">content roots</text>
+      <text x="380" y="105">Source-mapped</text>
+      <text x="380" y="125" fill="#8b949e" font-size="11">browse + studio</text>
+      <text x="649" y="105">One-file commits</text>
+      <text x="649" y="125" fill="#8b949e" font-size="11">debounced</text>
+    </g>
+    <g stroke="#5eead4" stroke-width="1.5" marker-end="url(#arrow)" fill="none">
+      <path d="M190 110h107"/>
+      <path d="M459 110h107"/>
+    </g>
+    <path d="M649 148v38H111v-38" stroke="#f4c27a" stroke-width="1.5" fill="none" stroke-dasharray="5 5" marker-end="url(#arrow)"/>
+    <text x="380" y="200" fill="#f4c27a" text-anchor="middle" font-size="11">autosave · inline edits · task toggles</text>
+  </g>
+</svg>

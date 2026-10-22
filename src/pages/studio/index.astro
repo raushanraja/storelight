@@ -1,0 +1,245 @@
+---
+export const prerender = false;
+import logo from '../../assets/logo.svg';
+import '../../styles/studio.css';
+
+const initialTheme = 'dark';
+---
+
+<!doctype html>
+<html lang="en" data-theme={initialTheme}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<title>Studio — Storelight</title>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<script is:inline>
+			try {
+				document.documentElement.dataset.theme =
+					localStorage.getItem('storelight:theme') === 'light' ? 'light' : 'dark';
+			} catch {}
+		</script>
+	</head>
+	<body>
+		<svg class="icon-sprite" aria-hidden="true">
+			<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></symbol>
+			<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></symbol>
+			<symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></symbol>
+			<symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" /></symbol>
+			<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z" /><path d="M14 3v6h6M8 13h8M8 17h5" /></symbol>
+			<symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8M7 3v5h8" /></symbol>
+			<symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8" /><path d="M3 3v5h5M12 7v5l3 2" /></symbol>
+			<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.51 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.51-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.51 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.5.5.91 1 1.09.17.06.35.09.55.09H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" /></symbol>
+			<symbol id="i-external" viewBox="0 0 24 24"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></symbol>
+			<symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></symbol>
+			<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></symbol>
+			<symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" /></symbol>
+			<symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+			<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" /><path d="M12 9v4M12 17h.01" /></symbol>
+			<symbol id="i-git" viewBox="0 0 24 24"><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="6" r="2.5" /><circle cx="6" cy="18" r="2.5" /><path d="M6 8.5v7M18 8.5v1a3 3 0 0 1-3 3H9a3 3 0 0 0-3 3" /></symbol>
+		</svg>
+
+		<header class="app-header">
+			<button type="button" class="icon-btn mobile-menu" id="sidebar-toggle" aria-label="Toggle file list">
+				<svg class="icon"><use href="#i-menu" /></svg>
+			</button>
+			<a class="brand" href="/">
+				<img src={logo.src} width="28" height="28" alt="" />
+				<span class="brand-text">
+					<strong>Storelight</strong>
+					<span>docs studio</span>
+				</span>
+			</a>
+
+			<div class="crumb" id="crumb" aria-live="polite">
+				<span class="crumb-muted" id="crumb-root">No document</span>
+				<span class="crumb-slash" aria-hidden="true">/</span>
+				<span class="crumb-title" id="crumb-title">Pick a file</span>
+			</div>
+
+			<div class="header-actions">
+				<button type="button" class="btn btn-primary" id="save-button" disabled>
+					<svg class="icon"><use href="#i-save" /></svg>
+					<span>Save</span>
+					<kbd>Ctrl S</kbd>
+				</button>
+				<button type="button" class="btn btn-ghost" id="history-button" disabled aria-label="Revision history" title="Revision history">
+					<svg class="icon"><use href="#i-history" /></svg>
+					<span>History</span>
+				</button>
+				<a class="icon-btn" href="/studio/settings" title="Roots and settings" aria-label="Settings">
+					<svg class="icon"><use href="#i-settings" /></svg>
+				</a>
+				<a
+					class="icon-btn"
+					id="view-link"
+					href="/"
+					target="_blank"
+					rel="noreferrer"
+					title="View rendered page"
+					aria-label="View rendered page"
+				>
+					<svg class="icon"><use href="#i-external" /></svg>
+				</a>
+				<button type="button" class="icon-btn" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
+					<svg class="icon theme-icon-dark"><use href="#i-sun" /></svg>
+					<svg class="icon theme-icon-light"><use href="#i-moon" /></svg>
+				</button>
+			</div>
+		</header>
+
+		<div class="app-body">
+			<aside class="sidebar" id="sidebar">
+				<div class="sidebar-top">
+					<label class="search">
+						<svg class="icon" aria-hidden="true"><use href="#i-search" /></svg>
+						<input
+							type="search"
+							id="file-filter"
+							placeholder="Filter files…"
+							autocomplete="off"
+							spellcheck="false"
+							aria-label="Filter files"
+						/>
+					</label>
+				</div>
+				<nav class="file-tree" id="file-tree" aria-label="Content files">
+					<div class="tree-loading">
+						<span class="spinner"></span>
+						Scanning roots…
+					</div>
+				</nav>
+				<div class="sidebar-foot">
+					<a href="/studio/settings" class="sidebar-foot-link">
+						<svg class="icon"><use href="#i-settings" /></svg>
+						Roots &amp; settings
+					</a>
+					<span class="sidebar-foot-meta" id="root-summary"></span>
+				</div>
+			</aside>
+			<button type="button" class="sidebar-backdrop" id="sidebar-backdrop" aria-label="Close file list"></button>
+
+			<main class="workspace">
+				<div class="state-panel" id="loading-state">
+					<span class="spinner large"></span>
+					<h1>Loading your roots</h1>
+					<p>Reading the configured Markdown folders.</p>
+				</div>
+
+				<div class="state-panel" id="empty-state" hidden>
+					<div class="state-icon">
+						<svg class="icon"><use href="#i-folder" /></svg>
+					</div>
+					<h1>No documents yet</h1>
+					<p id="empty-message">
+						Add a content root in Settings, then pick a Markdown file.
+					</p>
+					<a class="btn btn-primary" href="/studio/settings">Configure roots</a>
+				</div>
+
+				<section class="editor-panel" id="editor-panel" hidden>
+					<header class="doc-header">
+						<div class="doc-heading">
+							<div class="doc-mode-row">
+								<div class="segmented doc-mode-switch" role="group" aria-label="Editor mode">
+									<button type="button" data-mode="wysiwyg" class="is-active" disabled>
+										Visual
+									</button>
+									<button type="button" data-mode="raw" disabled>Code</button>
+								</div>
+								<span class="doc-mode-caption" id="mode-caption">Visual editor</span>
+							</div>
+							<h1 id="doc-title">Untitled</h1>
+							<div class="doc-sub">
+								<span id="doc-path" class="doc-path"></span>
+								<span class="doc-state" id="save-state" aria-live="polite">Saved</span>
+							</div>
+						</div>
+						<div class="doc-stats">
+							<span id="word-count">0 words</span>
+							<span class="dot" aria-hidden="true"></span>
+							<span id="char-count">0 chars</span>
+						</div>
+					</header>
+
+					<details class="frontmatter-panel" id="frontmatter-panel">
+						<summary>
+							<span class="summary-left">
+								<span class="fm-mark">FM</span>
+								<span>Frontmatter</span>
+							</span>
+							<span class="fm-hint" id="frontmatter-hint">YAML</span>
+						</summary>
+						<div class="fm-body">
+							<p class="fm-help">
+								YAML between the <code>---</code> fences. Leave empty to remove frontmatter.
+							</p>
+							<textarea id="frontmatter-input" spellcheck="false" placeholder="title: My page" aria-label="Frontmatter YAML"></textarea>
+						</div>
+					</details>
+
+					<div class="editor-stage">
+						<div id="rich-editor" class="rich-editor" aria-label="Rich Markdown editor"></div>
+						<div id="raw-editor" class="raw-editor" hidden aria-label="Raw Markdown editor"></div>
+					</div>
+				</section>
+			</main>
+		</div>
+
+		<footer class="statusbar">
+			<span class="status-item"><span class="status-dot" id="status-dot"></span><span id="status-save">Ready</span></span>
+			<span class="status-item"><svg class="icon tiny"><use href="#i-git" /></svg><span id="status-commit">Auto-commit enabled</span></span>
+			<span class="status-spacer"></span>
+			<span class="status-item" id="status-position">Markdown</span>
+			<span class="status-item" id="status-saved-at"></span>
+		</footer>
+
+		<dialog id="history-dialog" class="app-dialog history-dialog" aria-labelledby="history-title">
+			<div class="dialog-head">
+				<div>
+					<span class="eyebrow">Revision history</span>
+					<h2 id="history-title">Commits</h2>
+				</div>
+				<button type="button" class="icon-btn" data-close-dialog aria-label="Close">
+					<svg class="icon"><use href="#i-close" /></svg>
+				</button>
+			</div>
+			<div class="history-grid">
+				<div class="history-list" id="history-list"></div>
+				<div class="history-diff-pane">
+					<div class="diff-head"><span>Diff</span><span id="diff-label"></span></div>
+					<pre class="diff-view" id="history-diff">Select a commit to inspect the change.</pre>
+				</div>
+			</div>
+		</dialog>
+
+		<dialog id="conflict-dialog" class="app-dialog conflict-dialog" aria-labelledby="conflict-title">
+			<div class="dialog-head">
+				<div>
+					<span class="eyebrow">Save conflict</span>
+					<h2 id="conflict-title">This file changed on disk</h2>
+				</div>
+				<button type="button" class="icon-btn" data-conflict-cancel aria-label="Close">
+					<svg class="icon"><use href="#i-close" /></svg>
+				</button>
+			</div>
+			<p class="dialog-copy">
+				Storelight will not overwrite a file that changed underneath you. Reload the version on
+				disk, or keep your editor content and overwrite it.
+			</p>
+			<div class="dialog-actions">
+				<button type="button" class="btn btn-ghost" data-conflict-cancel>Keep editing</button>
+				<button type="button" class="btn btn-ghost danger" data-conflict-overwrite>Overwrite disk</button>
+				<button type="button" class="btn btn-primary" data-conflict-reload>Reload from disk</button>
+			</div>
+		</dialog>
+
+		<div id="toast" class="studio-toast" role="status" aria-live="polite"></div>
+
+		<script>
+			import { initStudio } from '../../scripts/studio';
+			initStudio();
+		</script>
+	</body>
+</html>

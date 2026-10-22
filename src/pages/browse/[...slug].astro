@@ -1,0 +1,222 @@
+---
+export const prerender = false;
+
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+import MarkdownContent from '@astrojs/starlight/components/MarkdownContent.astro';
+import { getConfig, getRoot } from '../../lib/config';
+import { listAllRoots, readDoc } from '../../lib/files';
+import { renderMarkdown } from '../../lib/markdown';
+import { decodePathParam, docUrl, studioUrl } from '../../lib/urls';
+import type { TreeNode } from '../../lib/types';
+import '../../styles/browse.css';
+
+const config = await getConfig();
+const slug = decodePathParam(Astro.params.slug).replace(/\/+$/, '');
+const firstSeparator = slug.indexOf('/');
+const rootId = firstSeparator === -1 ? slug : slug.slice(0, firstSeparator);
+const relPath = firstSeparator === -1 ? '' : slug.slice(firstSeparator + 1);
+
+function prettyDir(name: string): string {
+	const value = name.replace(/[-_]+/g, ' ');
+	return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function toSidebar(rootId: string, nodes: TreeNode[], currentPath: string): any[] {
+	return nodes.map((node) => {
+		if (node.type === 'file') {
+			return { label: node.title || node.name, link: docUrl(rootId, node.path) };
+		}
+		const containsCurrent = currentPath.startsWith(`${node.path}/`);
+		return {
+			label: prettyDir(node.name),
+			collapsed: !containsCurrent,
+			items: toSidebar(rootId, node.children ?? [], currentPath),
+		};
+	});
+}
+
+const allRoots = await listAllRoots(config);
+const current = allRoots.find((entry) => entry.id === rootId);
+const sidebar: any[] = [
+	{ label: 'Storelight home', link: '/' },
+	{ label: 'Studio', link: '/studio/' },
+	...allRoots.map((entry) => ({
+		label: entry.label,
+		collapsed: entry.id !== rootId,
+		items: entry.error
+			? [{ label: 'Unavailable', link: '/studio/settings' }]
+			: toSidebar(entry.id, entry.tree, relPath),
+	})),
+];
+
+let rendered: Awaited<ReturnType<typeof renderMarkdown>> | null = null;
+let doc: Awaited<ReturnType<typeof readDoc>> | null = null;
+let loadError = '';
+
+if (!rootId) {
+	loadError = 'Choose a document from the sidebar, or open the Studio to browse all configured roots.';
+} else if (!current) {
+	Astro.response.status = 404;
+	loadError = `Unknown content root “${rootId}”.`;
+} else if (!relPath) {
+	loadError = 'Choose a document from the sidebar.';
+} else {
+	try {
+		const root = await getRoot(rootId);
+		doc = await readDoc(root, relPath);
+		rendered = await renderMarkdown(root, doc.relPath, doc.source);
+	} catch (error) {
+		Astro.response.status = 404;
+		loadError = (error as Error).message;
+	}
+}
+
+const title = rendered?.title ?? 'Browse documents';
+const files = current?.files ?? [];
+const currentIndex = doc ? files.findIndex((file) => file.path === doc!.relPath) : -1;
+const previous = currentIndex > 0 ? files[currentIndex - 1] : undefined;
+const next = currentIndex >= 0 && currentIndex < files.length - 1 ? files[currentIndex + 1] : undefined;
+const studioHref = doc && rootId ? studioUrl(rootId, doc.relPath) : '/studio/';
+const editUrl = doc
+	? new URL(studioHref, Astro.url).toString()
+	: undefined;
+---
+
+<StarlightPage
+	frontmatter={{
+		title,
+		description: rendered?.description,
+		editUrl,
+	}}
+	sidebar={sidebar}
+	headings={rendered?.headings ?? []}
+>
+	{
+		rendered && doc && rootId ? (
+			<div class="sl-browse-shell">
+				<div class="sl-doc-pathline">
+					<span class="sl-doc-root">{current?.label}</span>
+					<span class="sl-doc-separator">/</span>
+					<span class="sl-doc-path">{doc.relPath}</span>
+				</div>
+
+				<div
+					class="sl-doc-toolbar"
+					id="sl-doc-shell"
+					data-root={rootId}
+					data-path={doc.relPath}
+					data-hash={rendered.hash}
+					data-view="visual"
+				>
+					<div class="sl-view-switch" role="group" aria-label="Document view">
+						<button
+							type="button"
+							class="sl-view-button is-active"
+							data-view="visual"
+							aria-pressed="true"
+						>
+							Visual
+						</button>
+						<button type="button" class="sl-view-button" data-view="code" aria-pressed="false">
+							Code
+						</button>
+					</div>
+					<div class="sl-doc-actions">
+						<button
+							type="button"
+							class="sl-inline-toggle"
+							id="sl-inline-toggle"
+							aria-pressed="true"
+							title="Toggle inline editing on this page"
+						>
+							<span class="sl-inline-dot" aria-hidden="true"></span>
+							<span class="sl-inline-label">Inline edit</span>
+						</button>
+						<a class="sl-studio-link" href={studioHref}>Open in Studio</a>
+					</div>
+				</div>
+
+				{rendered.frontmatterError && (
+					<p class="sl-doc-warning">
+						Frontmatter could not be parsed: {rendered.frontmatterError}
+					</p>
+				)}
+
+				<p class="sl-doc-hint">
+					Click any heading, paragraph, table, code block, or diagram to edit its Markdown.
+					Checkboxes save instantly. Use <strong>Code</strong> to read the raw source.
+				</p>
+
+				<div id="sl-doc" class="sl-doc-body" data-src-root={rootId} data-src-path={doc.relPath}>
+					<MarkdownContent>
+						<div set:html={rendered.html} />
+					</MarkdownContent>
+				</div>
+
+				<div id="sl-code-view" class="sl-code-view" hidden aria-label="Raw Markdown source">
+					<div class="sl-code-view-head">
+						<span>Raw Markdown · read only</span>
+						<button type="button" class="sl-code-copy" id="sl-copy-source">Copy source</button>
+					</div>
+					<pre class="sl-code-view-pre"><code id="sl-code-content"></code></pre>
+				</div>
+
+				<nav class="sl-doc-pager" aria-label="Document navigation">
+					{previous ? (
+						<a class="sl-pager-link" href={docUrl(rootId, previous.path)}>
+							<span class="sl-pager-label">Previous</span>
+							<span class="sl-pager-title">← {previous.title}</span>
+						</a>
+					) : (
+						<span />
+					)}
+					{next ? (
+						<a class="sl-pager-link sl-pager-next" href={docUrl(rootId, next.path)}>
+							<span class="sl-pager-label">Next</span>
+							<span class="sl-pager-title">{next.title} →</span>
+						</a>
+					) : (
+						<span />
+					)}
+				</nav>
+			</div>
+		) : (
+			<div class="sl-browse-empty">
+				<p>{loadError}</p>
+				<div class="sl-empty-actions">
+					<a class="sl-studio-link" href="/studio/">Open Studio</a>
+					<a class="sl-studio-link sl-studio-link-secondary" href="/studio/settings">
+						Configure roots
+					</a>
+				</div>
+			</div>
+		)
+	}
+</StarlightPage>
+
+<dialog id="sl-inline-dialog" class="sl-inline-dialog" aria-labelledby="sl-inline-title">
+	<form method="dialog" class="sl-inline-form">
+		<div class="sl-inline-head">
+			<div>
+				<span class="sl-inline-eyebrow" id="sl-inline-kind">Edit block</span>
+				<h2 id="sl-inline-title">Edit Markdown</h2>
+			</div>
+			<button class="sl-icon-button" value="cancel" aria-label="Close">✕</button>
+		</div>
+		<textarea id="sl-inline-text" spellcheck="false" wrap="soft"></textarea>
+		<div class="sl-inline-foot">
+			<span class="sl-inline-meta" id="sl-inline-meta">Ctrl+Enter to save · Esc to cancel</span>
+			<div class="sl-inline-buttons">
+				<button type="button" class="sl-btn sl-btn-ghost" id="sl-inline-cancel">Cancel</button>
+				<button type="button" class="sl-btn sl-btn-primary" id="sl-inline-save">Save</button>
+			</div>
+		</div>
+	</form>
+</dialog>
+
+<div id="sl-toast" class="sl-toast" role="status" aria-live="polite"></div>
+
+<script>
+	import { initInlineEditing } from '../../scripts/inline-edit';
+	initInlineEditing();
+</script>

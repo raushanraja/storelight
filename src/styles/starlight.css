@@ -1,0 +1,27 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/jetbrains-mono';
+
+:root {
+	--sl-font:
+		'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+	--sl-font-mono:
+		'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Give the browse view the same lamp-light accent as the Studio. */
+:root,
+::backdrop {
+	--sl-color-accent-low: hsl(168, 72%, 18%);
+	--sl-color-accent: #2dd4bf;
+	--sl-color-accent-high: #99f6e4;
+	--sl-color-text-accent: #99f6e4;
+	--sl-color-text-invert: #042f2b;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #ccfbf1;
+	--sl-color-accent: #0f766e;
+	--sl-color-accent-high: #115e59;
+	--sl-color-text-accent: #0f766e;
+	--sl-color-text-invert: #f0fdfa;
+}
